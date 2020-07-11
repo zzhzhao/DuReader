@@ -1,0 +1,12 @@
+
+
+
+python ./tensorflow/run.py --prepare \
+                    --train \
+                    --predict \
+                    --algo BIDAF \
+                    --epoch 10 \
+                    --max_q_len 80 \
+                    --max_a_len 80 \
+                  	--train_files ./data/du_format/train_para_extra.json \
+                  	--test_files ./data/du_format/test.json \

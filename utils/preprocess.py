@@ -17,8 +17,12 @@
 """
 This module finds the most related paragraph of each document according to recall.
 """
-
+import csv
 import sys
+
+import jieba
+import re
+
 if sys.version[0] == '2':
     reload(sys)
     sys.setdefaultencoding("utf-8")
@@ -210,9 +214,79 @@ def find_fake_answer(sample):
         sample['fake_answers'].append(best_fake_answer)
         sample['match_scores'].append(best_match_score)
 
+#加一个将莱斯杯数据转换为dureader格式
+#注意：测试集和训练集本不同，但是我的测试集是从训练集合中分出来的
+#故此，可以用同一个函数
+def laisi2dureader():
+    i=0
+    with open(r'D:\Git\decomp\dataset\origin\test.csv','r', encoding='utf-8') as f:
+        with open('../data/du_format/test.json','w',encoding='utf-8') as w:
 
+            reader = csv.reader(f)
+            next(reader, None)
+            for line in reader:
+
+                i+=1
+                # if i>100:break
+
+
+
+                pattern = re.compile('content\d@(.*?)@content')
+                answers = re.findall(pattern, line[0])
+
+                documents = []
+                for doc, title in zip(line[2:7], line[10:15]):
+                    bool_value = False
+                    for answer in answers:
+                        if doc.find(answer):
+                            bool_value = True
+                    paragraphs = [para+'。' for para in doc.split('。') if para]
+
+                    documents.append({
+                        'is_selected': bool_value,
+                        'title':title,
+                        'paragraphs':paragraphs,
+                        'segmented_title': list(jieba.cut(title)),
+                        'segmented_paragraphs': [list(jieba.cut(para)) for para in paragraphs],
+                    })
+
+
+
+                sample = {
+                    'documents':documents,
+                    "question": line[8],
+                    "segmented_answers": [list(jieba.cut(answer)) for answer in answers],
+                    "answers": answers,
+                    "segmented_question": list(jieba.cut(line[8])),
+                    "question_type": "DESCRIPTION",
+                    "question_id": line[-1],
+                    "fact_or_opinion": "FACT",
+                }
+                w.write(json.dumps(sample, ensure_ascii=False)+'\n')
+
+
+
+#注意：find_fake_answer(sample)是为标准答案找一个假答案，因此测试集如果没答案就用不了
+#总之，我发现tensorflow中的dataset.py文件中有对测试集的一个排序（通过question的recall），
+#而且，paragraph_extraction文件的策略和这个一样，而preprocess文件只是为了找虚假答案和most_related
+#段落，也没再排序啥的，所以说经过这个文件处理后，直接输入模型，test和train的上下文处理方式都不一样。
+#而paragraph_extraction正是为了train文件补上这个排序。
+# 结论是，test文件基本不用preprocess，paragraph_extraction步骤
 if __name__ == '__main__':
-    for line in sys.stdin:
-        sample = json.loads(line)
-        find_fake_answer(sample)
-        print(json.dumps(sample, encoding='utf8', ensure_ascii=False))
+    pass
+
+    # laisi2dureader()
+    #../data/demo/trainset/search.train.json
+    # with open('../data/du_format/train.json','r',encoding='utf-8') as f:
+    #     with open('../data/du_format/train_pre.json', 'w', encoding='utf-8') as w:
+    #         for line in f:
+    #             sample = json.loads(line)
+    #             find_fake_answer(sample)
+    #             w.write(json.dumps(sample, ensure_ascii=False)+'\n')
+    # i=0
+    # with open('../data/du_format/test.json', 'r', encoding='utf-8') as f:
+    #     with open('../data/du_format/test_small.json', 'w', encoding='utf-8') as w:
+    #         for line in f:
+    #             i+=1
+    #             if i>32:break
+    #             w.write(line)

@@ -97,7 +97,7 @@ def paragraph_selection(sample, mode):
     # predefined splitter
     splitter = u'<splitter>'
     # topN of related paragraph to choose
-    topN = 3
+    topN = 1#3
     doc_id = None
     if 'answer_docs' in sample and len(sample['answer_docs']) > 0:
         doc_id = sample['answer_docs'][0]
@@ -149,15 +149,18 @@ def paragraph_selection(sample, mode):
             topN_idx.append(para_info[-1])
         final_idx = []
         total_len = title_len
-        if doc_id == d_idx:
-            if mode == "train":
-                final_idx.append(para_id)
-                total_len = title_len + 1 + doc['paragraphs_length'][para_id]
+        #train中的含答案的句子特意加在检索的集合最前面，这个策略不行
+        #因为测试集没答案，故找不到含答案的句子
+        # if doc_id == d_idx:
+        #     if mode == "train":
+        #         final_idx.append(para_id)
+        #         total_len = title_len + 1 + doc['paragraphs_length'][para_id]
         for id in topN_idx:
             if total_len > MAX_P_LEN:
                 break
-            if doc_id == d_idx and id == para_id and mode == "train":
-                continue
+            #因为上面的策略，所以要去掉排在后面的含答案的句子，
+            # if doc_id == d_idx and id == para_id and mode == "train":
+            #     continue
             total_len += 1 + doc['paragraphs_length'][id] 
             final_idx.append(id)
         total_segmented_content = copy.deepcopy(segmented_title)
@@ -183,17 +186,25 @@ def paragraph_selection(sample, mode):
 
 if __name__ == "__main__":
     # mode="train"/"dev"/"test"
-    mode = sys.argv[1]
-    for line in sys.stdin:
-        line = line.strip()
-        if line == "":
-            continue
-        try:
-            sample = json.loads(line, encoding='utf8')
-        except:
-            print >>sys.stderr, "Invalid input json format - '{}' will be ignored".format(line)
-            continue
-        compute_paragraph_score(sample)
-        paragraph_selection(sample, mode)
-        print(json.dumps(sample, encoding='utf8', ensure_ascii=False))
+    # mode = sys.argv[1]
+    # for line in sys.stdin:
+    #     line = line.strip()
+    #     if line == "":
+    #         continue
+    #     try:
+    #         sample = json.loads(line, encoding='utf8')
+    #     except:
+    #         print >>sys.stderr, "Invalid input json format - '{}' will be ignored".format(line)
+    #         continue
+    #     compute_paragraph_score(sample)
+    #     paragraph_selection(sample, mode)
+    #     print(json.dumps(sample, encoding='utf8', ensure_ascii=False))
+    mode = 'test'#其实没用
+    with open('../data/du_format/train_pre.json', 'r', encoding='utf-8') as f:
+        with open('../data/du_format/train_para_extra.json', 'w', encoding='utf-8') as w:
+            for line in f:
+                sample = json.loads(line)
+                compute_paragraph_score(sample)
+                paragraph_selection(sample, mode)
+                w.write(json.dumps(sample, ensure_ascii=False)+'\n')
 
