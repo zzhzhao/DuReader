@@ -8,5 +8,5 @@ python ./tensorflow/run.py --prepare \
                     --epoch 10 \
                     --max_q_len 80 \
                     --max_a_len 80 \
-                  	--train_files ./data/du_format/train_para_extra.json \
-                  	--test_files ./data/du_format/test.json \
+                  	--train_files /match_bidaf/train_para_extra.json \
+                  	--test_files /match_bidaf/test.json \
