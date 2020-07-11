@@ -1,14 +1,14 @@
-# step1: »ù´¡¾µÏñÊ¹ÓÃtensorflow-gpu£¬µ±È»£¬ÄãÒ²¿ÉÒÔÊ¹ÓÃpython×÷Îª»ù´¡¾µÏñ£¬ºóÃæÔÙ°²×°tensorflow-gpuµÄÒÀÀµ
+# step1: åŸºç¡€é•œåƒä½¿ç”¨tensorflow-gpuï¼Œå½“ç„¶ï¼Œä½ ä¹Ÿå¯ä»¥ä½¿ç”¨pythonä½œä¸ºåŸºç¡€é•œåƒï¼Œåé¢å†å®‰è£…tensorflow-gpuçš„ä¾èµ–
 FROM hub.data.wust.edu.cn:30880/library/tensorflow:1.14.0-gpu-py3
 
-# step2: ½«¹¤³ÌÏÂÃæµÄ»úÆ÷Ñ§Ï°Ïà¹ØµÄÎÄ¼ş£¨ÕâÀïÊÇmnistÎÄ¼ş¼Ğ£©¸´ÖÆµ½ÈİÆ÷Ä³¸öÄ¿Â¼ÖĞ£¬ÀıÈç£º/home/mnist
+# step2: å°†å·¥ç¨‹ä¸‹é¢çš„æœºå™¨å­¦ä¹ ç›¸å…³çš„æ–‡ä»¶ï¼ˆè¿™é‡Œæ˜¯mnistæ–‡ä»¶å¤¹ï¼‰å¤åˆ¶åˆ°å®¹å™¨æŸä¸ªç›®å½•ä¸­ï¼Œä¾‹å¦‚ï¼š/home/mnist
 COPY ./ /home/dureader
 
-# step3 ÉèÖÃÈİÆ÷ÖĞµÄ¹¤×÷Ä¿Â¼£¬Ö±½ÓÇĞ»»µ½/home/mnistÄ¿Â¼ÏÂ
+# step3 è®¾ç½®å®¹å™¨ä¸­çš„å·¥ä½œç›®å½•ï¼Œç›´æ¥åˆ‡æ¢åˆ°/home/mnistç›®å½•ä¸‹
 WORKDIR /home/dureader
 
-# step4 °²×°ÒÀÀµ
-#RUN pip install -r requirements.txt
+# step4 å®‰è£…ä¾èµ–
+RUN pip install -r requirements.txt
 
-# step5 ÉèÖÃÈİÆ÷Æô¶¯Ê±µÄÔËĞĞÃüÁî£¬ÕâÀïÎÒÃÇÖ±½ÓÔËĞĞpython³ÌĞò
+# step5 è®¾ç½®å®¹å™¨å¯åŠ¨æ—¶çš„è¿è¡Œå‘½ä»¤ï¼Œè¿™é‡Œæˆ‘ä»¬ç›´æ¥è¿è¡Œpythonç¨‹åº
 ENTRYPOINT ["sh", "/home/dureader/tensorflow/run.sh"]
