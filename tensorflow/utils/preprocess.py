@@ -214,13 +214,13 @@ def find_fake_answer(sample):
         sample['fake_answers'].append(best_fake_answer)
         sample['match_scores'].append(best_match_score)
 
-#加一个将莱斯杯数据转换为dureader格式
-#注意：测试集和训练集本不同，但是我的测试集是从训练集合中分出来的
-#故此，可以用同一个函数
-def laisi2dureader():
+#加一个将莱斯杯数据转换为dureader格式，即 莱斯杯格式->dureader的raw格式
+#注意：测试集和训练集本不同（有无答案），但是我的测试集是从训练集合中分出来的
+#故此，可以用同一个函数，如果日后需要将没有答案的测试集进行转换，则需要重写一个函数
+def transform_dureader_raw(laisi_path, dureader_path):
     i=0
-    with open(r'D:\Git\decomp\dataset\origin\test.csv','r', encoding='utf-8') as f:
-        with open('../data/du_format/test.json','w',encoding='utf-8') as w:
+    with open(laisi_path,'r', encoding='utf-8') as f:
+        with open(dureader_path,'w',encoding='utf-8') as w:
 
             reader = csv.reader(f)
             next(reader, None)
@@ -238,8 +238,11 @@ def laisi2dureader():
                 for doc, title in zip(line[2:7], line[10:15]):
                     bool_value = False
                     for answer in answers:
-                        if doc.find(answer):
+                        if doc.find(answer)!=-1 or doc.find(answer[:-1])!=-1:
                             bool_value = True
+                    #注意：找不到答案的即五个document的bool_value都是False，如果不做处理，模型也会把他们当成一部分训练数据
+                    #另外，find_fake_answer中is_selected=False的不会去找虚假答案，因此额外的处理是
+                    #最后看documents里面的is_selected都是False的话，就全设置为True，让其自己找一个虚假答案
                     paragraphs = [para+'。' for para in doc.split('。') if para]
 
                     documents.append({
@@ -249,6 +252,16 @@ def laisi2dureader():
                         'segmented_title': list(jieba.cut(title)),
                         'segmented_paragraphs': [list(jieba.cut(para)) for para in paragraphs],
                     })
+                # 注意：找不到答案的即五个document的bool_value都是False，如果不做处理，模型也会把他们当成一部分训练数据
+                # 另外，find_fake_answer中is_selected=False的不会去找虚假答案，因此额外的处理是
+                # 最后看documents里面的is_selected都是False的话，就全设置为True，让其自己找一个虚假答案
+                sum_is_selected = 0
+                for doc in documents:
+                    sum_is_selected += doc['is_selected']
+                if sum_is_selected == 0:
+                    for doc in documents:
+                        doc['is_selected'] = True
+
 
 
 
@@ -275,14 +288,18 @@ def laisi2dureader():
 if __name__ == '__main__':
     pass
 
-    # laisi2dureader()
-    #../data/demo/trainset/search.train.json
-    # with open('../data/du_format/train.json','r',encoding='utf-8') as f:
-    #     with open('../data/du_format/train_pre.json', 'w', encoding='utf-8') as w:
+    # transform_dureader_raw(r'D:\Git\decomp\dataset\origin\test.csv',
+    #                         '../../data/my/test.json')
+
+
+    # ../data/demo/trainset/search.train.json
+    # with open('../../data/my/train.json','r',encoding='utf-8') as f:
+    #     with open('../../data/my/train_pre.json', 'w', encoding='utf-8') as w:
     #         for line in f:
     #             sample = json.loads(line)
     #             find_fake_answer(sample)
     #             w.write(json.dumps(sample, ensure_ascii=False)+'\n')
+    #造一个小的数据集测试跑步跑的通
     # i=0
     # with open('../data/du_format/test.json', 'r', encoding='utf-8') as f:
     #     with open('../data/du_format/test_small.json', 'w', encoding='utf-8') as w:
