@@ -7,6 +7,7 @@ python ./tensorflow/run.py --prepare \
                     --epoch 10 \
                     --max_q_len 80 \
                     --max_a_len 80 \
+                    --batch_size 16 \
                   	--train_files /match_lstm_bidaf_data/train_para_extra.json \
                   	--test_files /match_lstm_bidaf_data/test_para_extra.json \
                   	--dev_files /match_lstm_bidaf_data/test_para_extra.json
