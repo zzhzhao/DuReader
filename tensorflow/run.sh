@@ -3,7 +3,7 @@
 
 python ./tensorflow/run.py --prepare \
                     --train \
-                    --algo MLSTM \
+                    --algo BIDAF \
                     --epoch 10 \
                     --max_q_len 80 \
                     --max_a_len 80 \
