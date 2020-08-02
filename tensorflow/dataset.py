@@ -96,7 +96,9 @@ class BRCDataset(object):
                         fake_passage_tokens = []
                         for para_info in para_infos[:1]:
                             fake_passage_tokens += para_info[0]
-                        sample['passages'].append({'passage_tokens': fake_passage_tokens})
+                        # sample['passages'].append({'passage_tokens': fake_passage_tokens})
+                        sample['passages'].append(
+                            {'passage_tokens': doc['segmented_paragraphs'][0]})
                 data_set.append(sample)
         return data_set
 
