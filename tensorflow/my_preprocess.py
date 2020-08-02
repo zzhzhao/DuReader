@@ -23,8 +23,8 @@ def transform_dureader(origin_path, dureader_path, mode = 'train'):
             for line in json.load(f)['data']:
 
                 #造一个小数据集方便实验代码是否正常
-                j += 1
-                if j >32:break
+                # j += 1
+                # if j >32:break
 
                 question = line['paragraphs'][0]['qas'][0]['question']
 
