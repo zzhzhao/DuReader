@@ -12,6 +12,9 @@ import re
 #超参设置 最大篇章数为1，最大单篇文章的字数。。。
 import jieba
 
+from tensorflow.utils.preprocess import metric_max_over_ground_truths, f1_score
+
+
 def transform_dureader(origin_path, dureader_path, mode = 'train'):
     j=0
     with open(origin_path,'r', encoding='utf-8') as f:
@@ -20,8 +23,8 @@ def transform_dureader(origin_path, dureader_path, mode = 'train'):
             for line in json.load(f)['data']:
 
                 #造一个小数据集方便实验代码是否正常
-                # j += 1
-                # if j >32:break
+                j += 1
+                if j >32:break
 
                 question = line['paragraphs'][0]['qas'][0]['question']
 
@@ -32,8 +35,23 @@ def transform_dureader(origin_path, dureader_path, mode = 'train'):
                 # 测试集中有的不一定找得到答案,不一定找得到相关段落
                 if mode == 'train':
                     answer = line['paragraphs'][0]['qas'][0]['answers'][0]['text']
-                    start_id = line['paragraphs'][0]['qas'][0]['answers'][0]['answer_start']
+                    answer_tokens = list(jieba.cut(answer))
 
+                    best_match_score = 0
+                    best_match_span = [-1, -1]
+                    most_related_para_tokens = list(jieba.cut(context))[:1000]
+                    for start_tidx in range(len(most_related_para_tokens)):
+                        if most_related_para_tokens[start_tidx] not in answer_tokens:
+                            continue
+                        for end_tidx in range(len(most_related_para_tokens) - 1, start_tidx - 1, -1):
+                            span_tokens = most_related_para_tokens[start_tidx: end_tidx + 1]
+
+                            match_score = metric_max_over_ground_truths(f1_score, span_tokens,
+                                                                        [answer_tokens])
+                            if match_score > best_match_score:
+                                best_match_span = [start_tidx, end_tidx]
+                                best_match_score = match_score
+                                # best_fake_answer = ''.join(span_tokens)
 
 
                 if mode == 'train':
@@ -48,7 +66,7 @@ def transform_dureader(origin_path, dureader_path, mode = 'train'):
                     }]
                     sample = {
                         'documents':documents,
-                        "answer_spans": [[start_id, start_id + len(answer)]],
+                        "answer_spans": [best_match_span],
                         "question": question,
                         "segmented_answers": list(jieba.cut(answer)),
                         "answers": answer,
@@ -80,3 +98,6 @@ transform_dureader(r'D:\Git\decomp\processed\origin\train.json',
                    'D:/Git/DuReader/data/my_preprocess/train.json',
                    mode = 'train')
 #                    训练集和测试集的主要区别在于是否有相关段落，答案，答案开始标签，answer_docs
+
+
+
